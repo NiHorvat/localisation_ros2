@@ -10,7 +10,6 @@
 #include <functional>
 #include <regex>
 
-
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
@@ -39,7 +38,6 @@ public:
 
         this->configureSerialPort();
 
-
         m_io_thread = std::thread([this]()
                                   { this->ctx.run(); });
     }
@@ -65,12 +63,10 @@ private:
 void SerialParser::configureSerialPort()
 {
     this->m_port.open(
-        this->get_parameter("port_name").as_string()
-    );
+        this->get_parameter("port_name").as_string());
     this->m_port.set_option(
         asio::serial_port_base::baud_rate(
-            this->get_parameter("baud_rate").as_int()
-        ));
+            this->get_parameter("baud_rate").as_int()));
 
     this->readLine();
 }
@@ -94,73 +90,79 @@ void SerialParser::lineReceived(const boost::system::error_code &ec)
 
     std::istream is(&m_serialData);
 
-    if (!is.good()){
+    if (!is.good())
+    {
         readLine();
         return;
     }
-    
+
     std::string s = std::string(
         std::istreambuf_iterator<char>(is),
         std::istreambuf_iterator<char>());
 
-    if(s.at(0) != '$') {
+    if (s.at(0) != '$')
+    {
         readLine();
         return;
     }
 
     this->parseAndPublish(s);
-    
+
     this->readLine();
 }
 
-
-void SerialParser::parseAndPublish(std::string dataLine){
+void SerialParser::parseAndPublish(std::string dataLine)
+{
 
     auto msg = std_msgs::msg::Float32MultiArray();
     std::vector<float> data;
 
     // Pattern to find *each* object
     std::regex object_pattern(
-        R"(\{"TAG_ID":\s*(\d+),\s*"ANCHOR_ID":\s*(\d+),\s*"DISTANCE_MEASURED":\s*([\d.]+)\})"
-    );
-    
+        R"(\{"TAG_ID":\s*(\d+),\s*"ANCHOR_ID":\s*(\d+),\s*"DISTANCE_MEASURED":\s*([\d.]+)\})");
+
     // Iterators to search the string
     auto begin = std::sregex_iterator(dataLine.begin(), dataLine.end(), object_pattern);
     auto end = std::sregex_iterator();
 
-
-
-
-    std::cout << "--- Extracted Data Points ---" << std::endl;
-    for (std::sregex_iterator i = begin; i != end; ++i) {
+    RCLCPP_INFO_STREAM(
+        this->get_logger(),
+        "--- Extracted Data Points ---");
+    for (std::sregex_iterator i = begin; i != end; ++i)
+    {
         std::smatch match = *i;
         float distance;
         std::string tag_id, anchor_id;
 
         tag_id = match[1].str();
         anchor_id = match[2].str();
-        try{
+        try
+        {
             distance = std::stof(match[3].str());
-        }catch(...){
+        }
+        catch (...)
+        {
             std::cout << "error while parsing" << std::endl;
             return;
         }
 
-        
-        std::cout << "TAG_ID: " << tag_id
-                  << ", ANCHOR_ID: " << anchor_id
-                  << ", DISTANCE: " << distance << std::endl;
-    
+        RCLCPP_INFO_STREAM(
+            this->get_logger(),
+            "TAG_ID:" << tag_id
+                      << ", ANCHOR_ID: " << anchor_id
+                      << ", DISTANCE: " << distance
+            );
+
         data.push_back(distance);
     }
 
-    std::cout << "-----------------------------" << std::endl;
+    RCLCPP_INFO_STREAM(
+        this->get_logger(),
+        "-----------------------------");
 
     msg.data = data;
     this->publisher_->publish(msg);
-
 }
-
 
 SerialParser::~SerialParser()
 {
