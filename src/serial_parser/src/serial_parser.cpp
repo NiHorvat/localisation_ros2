@@ -19,8 +19,6 @@ using namespace boost;
 
 using namespace std::chrono_literals;
 
-/* This example creates a subclass of Node and uses std::bind() to register a
- * member function as a callback from the timer. */
 
 class SerialParser : public rclcpp::Node
 {
@@ -31,11 +29,16 @@ public:
           m_port(this->ctx)
 
     {
-        publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/distances", 10);
+        this->declare_parameter("distances_topic", "/distances");
         this->declare_parameter("port_name", "/dev/ttyACM0");
         this->declare_parameter("baud_rate", 115200);
         this->declare_parameter("tag_count", 1);
-
+        
+        
+        publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
+            this->get_parameter("distances_topic").as_string(),
+            10
+        );
         this->configureSerialPort();
 
         m_io_thread = std::thread([this]()
@@ -161,6 +164,7 @@ void SerialParser::parseAndPublish(std::string dataLine)
         "-----------------------------");
 
     msg.data = data;
+    
     this->publisher_->publish(msg);
 }
 
