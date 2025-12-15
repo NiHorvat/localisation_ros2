@@ -18,10 +18,19 @@ if(BUILD_TESTING)
 endif()
 
 find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+
+
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Distances.msg"
- )
+  DEPENDENCIES builtin_interfaces 
+)
 
+install(
+  DIRECTORY msg
+  DESTINATION share/${PROJECT_NAME}
+)
 
+ament_export_dependencies(rosidl_default_runtime)
 ament_package()

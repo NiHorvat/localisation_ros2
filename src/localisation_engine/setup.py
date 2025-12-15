@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'localisation_engine_node = localisation_engine.localisation_engine_node:main',
+            'mqtt_publisher_node = localisation_engine.mqtt_publisher_node:main', 
         ],
     },
 )

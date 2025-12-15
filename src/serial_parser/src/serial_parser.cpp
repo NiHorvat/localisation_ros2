@@ -13,6 +13,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include "custom_msgs/msg/distances.hpp"
 
 using namespace std;
 using namespace boost;
@@ -30,12 +31,13 @@ public:
 
     {
         this->declare_parameter("distances_topic", "/distances");
+        
         this->declare_parameter("port_name", "/dev/ttyACM0");
         this->declare_parameter("baud_rate", 115200);
         this->declare_parameter("tag_count", 1);
         
         
-        publisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
+        publisher_ = this->create_publisher<custom_msgs::msg::Distances>(
             this->get_parameter("distances_topic").as_string(),
             10
         );
@@ -61,17 +63,31 @@ private:
 
     std::thread m_io_thread;
 
-    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr publisher_;
+    rclcpp::Publisher<custom_msgs::msg::Distances>::SharedPtr publisher_;
+
+
 };
 void SerialParser::configureSerialPort()
 {
-    this->m_port.open(
-        this->get_parameter("port_name").as_string());
-    this->m_port.set_option(
-        asio::serial_port_base::baud_rate(
-            this->get_parameter("baud_rate").as_int()));
+    try{
 
+        this->m_port.open(
+            this->get_parameter("port_name").as_string());
+            this->m_port.set_option(
+                asio::serial_port_base::baud_rate(
+                    this->get_parameter("baud_rate").as_int()));
+                    
+                    
+    }catch(...){
+        
+        RCLCPP_ERROR_STREAM(this->get_logger(),
+            "Could not open a port " << this->get_parameter("port_name").as_string());
+        exit(0);
+    }
+
+    // if port opened succesfuly
     this->readLine();
+
 }
 
 void SerialParser::readLine()
@@ -117,7 +133,9 @@ void SerialParser::lineReceived(const boost::system::error_code &ec)
 void SerialParser::parseAndPublish(std::string dataLine)
 {
 
-    auto msg = std_msgs::msg::Float32MultiArray();
+    
+    auto msg = custom_msgs::msg::Distances();
+    msg.stamp = this->get_clock()->now();
     std::vector<float> data;
 
     // Pattern to find *each* object
@@ -163,8 +181,7 @@ void SerialParser::parseAndPublish(std::string dataLine)
         this->get_logger(),
         "-----------------------------");
 
-    msg.data = data;
-    
+    msg.distances = data;    
     this->publisher_->publish(msg);
 }
 

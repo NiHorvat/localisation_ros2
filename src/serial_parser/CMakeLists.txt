@@ -13,13 +13,15 @@ find_package(std_msgs REQUIRED)
 
 
 find_package(Boost 1.70 REQUIRED COMPONENTS system)
+find_package(custom_msgs REQUIRED)                      
+
 
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+find_package(ament_lint_auto REQUIRED)
+set(ament_cmake_copyright_FOUND TRUE)
+set(ament_cmake_cpplint_FOUND TRUE)
+ament_lint_auto_find_test_dependencies()
 endif()
 
 
@@ -30,5 +32,6 @@ install(TARGETS
         serial_parser 
         DESTINATION lib/${PROJECT_NAME}
         )
-
+        
+ament_target_dependencies(serial_parser rclcpp custom_msgs)   
 ament_package()
