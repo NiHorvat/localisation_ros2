@@ -85,13 +85,13 @@ class LocalisationEngines(Node):
         new_point.header.frame_id = "map"
         #TODO Placeholder if the point is null, REMOVE BEFORE FLIGHT
         if(points is not None):
-            new_point.x = points[0][0]
-            new_point.y = points[0][1]
-            new_point.z = points[0][2]
+            new_point.point.x = points[0][0]
+            new_point.point.y = points[0][1]
+            new_point.point.z = points[0][2]
         else:
-            new_point.x = 1.0
-            new_point.y = 1.0
-            new_point.z = 0.0
+            new_point.point.x = 1.0
+            new_point.point.y = 1.0
+            new_point.point.z = 0.0
 
 
         self.tag_coord_publisher.publish(new_point)
