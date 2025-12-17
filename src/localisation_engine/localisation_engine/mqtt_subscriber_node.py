@@ -5,13 +5,13 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 
 import paho.mqtt.client as mqtt
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 
 import threading
-import json
-import ast
 
 
+from rosidl_runtime_py.convert import message_to_csv, set_message_fields
+import yaml
 
 class MQTT_client(Node):
     def __init__(self):
@@ -47,7 +47,7 @@ class MQTT_client(Node):
 
         self.tag_coord_publisher = self.create_publisher(
             topic=self.get_parameter("tag_coord_topic").get_parameter_value().string_value,
-            msg_type=Point,
+            msg_type=PointStamped,
             qos_profile=10
         )        
 
@@ -59,25 +59,19 @@ class MQTT_client(Node):
         def _on_message(client, userdata, msg : mqtt.MQTTMessage):
             try:
                 clean_str = msg.payload.decode('utf-8')
+                
+                new_point = PointStamped()
+                
 
-                self.get_logger().info(str(clean_str))
-
-                data_str = clean_str.split('Point(')[1].rstrip(')')
-
-                kv_pairs = [pair.split('=') for pair in data_str.split(', ')]
-                coords = {k: float(v) for k, v in kv_pairs}
-
-                new_point = Point()
-                # -10000 is for development purposes
-                new_point.x = coords.get('x', -10000.0)
-                new_point.y = coords.get('y', -10000.0)
-                new_point.z = coords.get('z', -10000.0)
-
-
+                yaml_str = clean_str.split('(', 1)[1].rsplit(')', 1)[0]
+                data_dict = yaml.safe_load(yaml_str)
+                
+                set_message_fields(new_point, data_dict)
+                
                 self.tag_coord_publisher.publish(new_point)
 
             except Exception as e:
-                self.get_logger().error(f"Error in on_message: {e}")
+                self.get_logger().error(f"Failed to copy message: {e}")
 
 
         self.mqttc.on_message = _on_message

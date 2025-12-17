@@ -5,7 +5,7 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 
 import paho.mqtt.client as mqtt
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 
 import threading
 
@@ -42,7 +42,7 @@ class MQTT_client(Node):
         self.create_subscription(
             topic=self.get_parameter("tag_coord_topic").get_parameter_value().string_value,
             callback=self._on_tag_pos_cb,
-            msg_type=Point,
+            msg_type=PointStamped,
             qos_profile=10
         )        
 
@@ -50,7 +50,7 @@ class MQTT_client(Node):
 
 
 
-    def _on_tag_pos_cb(self, msg : Point):
+    def _on_tag_pos_cb(self, msg : PointStamped):
         
         self.mqttc.publish(
             topic=self.get_parameter("mqtt_publish_topic").get_parameter_value().string_value,

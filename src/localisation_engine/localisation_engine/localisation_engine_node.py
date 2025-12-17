@@ -9,7 +9,7 @@ from std_msgs.msg import Float32MultiArray
 from rclpy.parameter import Parameter
 from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.executors import ExternalShutdownException
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 
 
 
@@ -44,7 +44,7 @@ class LocalisationEngines(Node):
         ) 
         
         self.tag_coord_publisher = self.create_publisher(
-            msg_type=Point,
+            msg_type=PointStamped,
             qos_profile=10,
             topic=self.get_parameter("tag_coord_topic").get_parameter_value().string_value
         )
@@ -74,13 +74,15 @@ class LocalisationEngines(Node):
 
     def distances_callback(self, msg : Distances):
         
-        
+        #TODO fix this with real trilateration calculation that takes in the account the errors that might occur, inaccuracy during the meassurements
         points = self.trilaterator.test_trilaterate(distances=msg.distances)
 
         self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"trilaterated : {points}")
         
-        new_point = Point()
+        new_point = PointStamped()
+        new_point.header.stamp = self.get_clock().now().to_msg()
+        new_point.header.frame_id = "map"
         #TODO Placeholder if the point is null, REMOVE BEFORE FLIGHT
         if(points is not None):
             new_point.x = points[0][0]
