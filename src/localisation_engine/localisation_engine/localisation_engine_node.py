@@ -21,7 +21,7 @@ import numpy as np
 
 class LocalisationEngines(Node):
     def __init__(self):
-        super().__init__("LocalisationEngine")
+        super().__init__("localisation_engine_node")
 
         self.declare_parameter("distance_topic", "/distances")
         self.declare_parameter("tag_coord_topic","/tag/coords")
@@ -51,7 +51,7 @@ class LocalisationEngines(Node):
 
 
         if(len(self.get_parameter("anchor_positions_param").get_parameter_value().double_array_value) < 9):
-            self.get_logger().error("Anchor count less than 3, unable to localise")
+            self.get_logger().error(f"Anchor count less than 3, unable to localise anchors{self.get_parameter("anchor_positions_param").get_parameter_value().double_array_value}")
             exit(0)
 
         self.achor_coords = np.reshape(

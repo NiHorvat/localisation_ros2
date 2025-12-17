@@ -1,0 +1,12 @@
+/serial_parser:
+  ros__parameters:
+    port_name: "/dev/ttyACM0"
+    baud_rate: 115200
+
+/localisation_engine_node:
+  ros__parameters:
+    anchor_positions_param: [0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0]
+
+/mqtt_publihser_node:
+  ros__parameters:
+    mqtt_host: "10.98.186.228"

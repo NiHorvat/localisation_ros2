@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point
 
 import threading
 import json
-
+import ast
 
 
 
@@ -45,7 +45,7 @@ class MQTT_client(Node):
 
 
 
-        self._publihser = self.create_publisher(
+        self.tag_coord_publisher = self.create_publisher(
             topic=self.get_parameter("tag_coord_topic").get_parameter_value().string_value,
             msg_type=Point,
             qos_profile=10
@@ -56,9 +56,26 @@ class MQTT_client(Node):
             qos=self.get_parameter("mqtt_qos").get_parameter_value().integer_value
         )
 
-        def _on_message(client, userdata, msg):
+        def _on_message(client, userdata, msg : mqtt.MQTTMessage):
             try:
-                self.get_logger().info(msg)
+                clean_str = msg.payload.decode('utf-8')
+
+                self.get_logger().info(str(clean_str))
+
+                data_str = clean_str.split('Point(')[1].rstrip(')')
+
+                kv_pairs = [pair.split('=') for pair in data_str.split(', ')]
+                coords = {k: float(v) for k, v in kv_pairs}
+
+                new_point = Point()
+                # -10000 is for development purposes
+                new_point.x = coords.get('x', -10000.0)
+                new_point.y = coords.get('y', -10000.0)
+                new_point.z = coords.get('z', -10000.0)
+
+
+                self.tag_coord_publisher.publish(new_point)
+
             except Exception as e:
                 self.get_logger().error(f"Error in on_message: {e}")
 
