@@ -9,13 +9,17 @@ from geometry_msgs.msg import PointStamped
 
 import threading
 
-
-from rosidl_runtime_py.convert import message_to_csv, set_message_fields
+import rosidl_runtime_py.utilities
+from rosidl_runtime_py.set_message import set_message_fields
 import yaml
+
+import geometry_msgs
+import std_msgs
+import builtin_interfaces
 
 class MQTT_client(Node):
     def __init__(self):
-        super().__init__("MQTT_client")
+        super().__init__("MQTT_client_subscriber")
 
         """
             Parameters concerning MQTT client
@@ -59,16 +63,16 @@ class MQTT_client(Node):
         def _on_message(client, userdata, msg : mqtt.MQTTMessage):
             try:
                 clean_str = msg.payload.decode('utf-8')
+                self.get_logger().info(clean_str)
                 
-                new_point = PointStamped()
-                
+                #FIXME loooooll
 
-                yaml_str = clean_str.split('(', 1)[1].rsplit(')', 1)[0]
-                data_dict = yaml.safe_load(yaml_str)
+
+                new_msg = eval(clean_str)
+
                 
-                set_message_fields(new_point, data_dict)
-                
-                self.tag_coord_publisher.publish(new_point)
+                                
+                self.tag_coord_publisher.publish(new_msg)
 
             except Exception as e:
                 self.get_logger().error(f"Failed to copy message: {e}")

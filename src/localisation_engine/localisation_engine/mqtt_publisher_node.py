@@ -12,7 +12,7 @@ import threading
 
 class MQTT_client(Node):
     def __init__(self):
-        super().__init__("MQTT_client")
+        super().__init__("MQTT_client_publisher")
 
         """
             Parameters concerning MQTT client
