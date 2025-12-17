@@ -26,6 +26,9 @@ setup(
         'console_scripts': [
             'localisation_engine_node = localisation_engine.localisation_engine_node:main',
             'mqtt_publisher_node = localisation_engine.mqtt_publisher_node:main', 
+            'mqtt_subscriber_node = localisation_engine.mqtt_subscriber_node:main', 
+
+
         ],
     },
 )
