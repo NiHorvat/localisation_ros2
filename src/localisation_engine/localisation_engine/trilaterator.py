@@ -8,8 +8,12 @@ class Trilaterator():
         self.anchor_coords = anchor_coords
 
     
+    def test_trilaterate(self, distances):
+        return None
+
     
     def trilaterate(self, distances : np.ndarray):
+
 
         p1,p2,p3 = self.anchor_coords
         r1,r2,r3 = distances

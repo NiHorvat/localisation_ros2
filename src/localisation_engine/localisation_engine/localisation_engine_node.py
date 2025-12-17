@@ -75,7 +75,7 @@ class LocalisationEngines(Node):
     def distances_callback(self, msg : Distances):
         
         
-        points = self.trilaterator.trilaterate(distances=msg.distances)
+        points = self.trilaterator.test_trilaterate(distances=msg.distances)
 
         self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"trilaterated : {points}")
