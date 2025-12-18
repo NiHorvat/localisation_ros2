@@ -19,7 +19,7 @@ import builtin_interfaces
 
 class MQTT_client(Node):
     def __init__(self):
-        super().__init__("MQTT_client_subscriber")
+        super().__init__("mqtt_subscriber_node")
 
         """
             Parameters concerning MQTT client
@@ -33,8 +33,6 @@ class MQTT_client(Node):
 
 
         self.declare_parameter("tag_coord_topic","/tag/coords")
-
-
 
         self.mqttc = mqtt.Client(
             protocol=mqtt.MQTTv5 
@@ -65,9 +63,9 @@ class MQTT_client(Node):
                 clean_str = msg.payload.decode('utf-8')
                 self.get_logger().info(clean_str)
                 
-                #FIXME loooooll
 
 
+                #FIXME loooool  l
                 new_msg = eval(clean_str)
 
                 

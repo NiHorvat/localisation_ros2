@@ -10,3 +10,9 @@
 /mqtt_publihser_node:
   ros__parameters:
     mqtt_host: "10.98.186.228"
+
+
+
+/mqtt_subscriber_node:
+  ros__parameters:
+    mqtt_host: "localhost"

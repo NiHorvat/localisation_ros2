@@ -75,7 +75,7 @@ class LocalisationEngines(Node):
     def distances_callback(self, msg : Distances):
         
         #TODO fix this with real trilateration calculation that takes in the account the errors that might occur, inaccuracy during the meassurements
-        points = self.trilaterator.test_trilaterate(distances=msg.distances)
+        points = self.trilaterator.a(distances=msg.distances)
 
         self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"trilaterated : {points}")
