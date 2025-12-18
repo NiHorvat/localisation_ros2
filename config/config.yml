@@ -5,7 +5,8 @@
 
 /localisation_engine_node:
   ros__parameters:
-    anchor_positions_param: [0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 0.0]
+    # anchor_2, anchor_3, anchor_4
+    anchor_positions_param: [0.0, 0.0, 1.0, 4.0, 0.0, 1.0, 0.0, 4.0, 1.0]
 
 /mqtt_publihser_node:
   ros__parameters:
