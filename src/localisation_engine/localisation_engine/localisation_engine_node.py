@@ -68,22 +68,22 @@ class LocalisationEngines(Node):
 
     def distances_callback(self, msg : Distances):
         
-        points = self.ekf_c_.get_new_state(measurements=msg)[0:3]
+        point = self.ekf_c_.get_new_state(measurements=msg)[0:3]
 
-        self.get_logger().info(f"received distances{msg.distances}")
-        self.get_logger().info(f"trilaterated : {points}")
+        #self.get_logger().info(f"received distances{msg.distances}")
+        self.get_logger().info(f"new position : {point}")
         
         new_point = PointStamped()
         new_point.header.stamp = self.get_clock().now().to_msg()
         new_point.header.frame_id = "map"
 
-        if(points is None):
+        if(point is None):
             self.get_logger().error("Failed to calculate the new point")
             return
         
-        new_point.point.x = points[0][0]
-        new_point.point.y = points[0][1]
-        new_point.point.z = points[0][2]
+        new_point.point.x = float(point[0])
+        new_point.point.y = float(point[1])
+        new_point.point.z = float(point[2])
 
         self.tag_coord_publisher_.publish(new_point)
 

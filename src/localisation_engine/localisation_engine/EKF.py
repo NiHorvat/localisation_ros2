@@ -26,7 +26,7 @@ class EKF_c:
         self.last_timestamp_.nanosec = 0
         
         
-    def predict(self, dt : np.float32) -> np.ndarray:
+    def predict(self, dt : float) -> np.ndarray:
         
         F = np.eye(N=6,dtype=np.float32) # transition matrix
         F[0, 3] = F[1, 4] = F[2, 5] = dt
@@ -86,9 +86,12 @@ class EKF_c:
 
     def get_new_state(self, measurements : Distances) -> np.array:    
         
-        dt = measurements.stamp - self.last_timestamp_ # calculate the dt
+        dt = Time()
+        dt.sec = measurements.stamp.sec - self.last_timestamp_.sec
+        dt.nanosec = measurements.stamp.nanosec - self.last_timestamp_.nanosec
+        dt_float = dt.sec + dt.nanosec * 1e-9
 
-        self.predict(dt=dt)
+        self.predict(dt=dt_float)
         self.update(measurements=measurements.distances)
         
         # update the value for last_timestamp_
