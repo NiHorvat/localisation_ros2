@@ -62,13 +62,17 @@ class LocalisationEngines(Node):
             f"Anchor Coordinates:\n {self.achor_coords_}"
         )
 
-        self.ekf_c_ = EKF.EKF_c(anchors=self.achor_coords_, q_std=0.1, r_std=0.1)
+        self.declare_parameter("EKF_MODE","ASYNC")
+
+        self.ekf_c_ = EKF.EKF_c(mode = self.get_parameter("EKF_MODE").get_parameter_value().string_value, 
+                                anchors=self.achor_coords_, 
+                                q_std=0.1, r_std=0.1)
 
 
 
     def distances_callback(self, msg : Distances):
         
-        point = self.ekf_c_.get_new_state(measurements=msg)[0:3]
+        point = self.ekf_c_.get_new_state_w(msg=msg)[0:3]
 
         #self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"new position : {point}")

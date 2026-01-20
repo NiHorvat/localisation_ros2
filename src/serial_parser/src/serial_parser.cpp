@@ -129,62 +129,54 @@ void SerialParser::lineReceived(const boost::system::error_code &ec)
 
     this->readLine();
 }
-
 void SerialParser::parseAndPublish(std::string dataLine)
 {
-
-    
     auto msg = custom_msgs::msg::Distances();
     msg.stamp = this->get_clock()->now();
-    std::vector<float> data;
+    
+    // This regex looks for:
+    // 1. "MRA :" followed by digits (Group 1)
+    // 2. OR a TAG_ID/ANCHOR_ID/DISTANCE block (Groups 2, 3, and 4)
+    std::regex combined_pattern(
+        R"(MRA\s*:\s*(\d+)|"TAG_ID":\s*(\d+),\s*"ANCHOR_ID":\s*(\d+),\s*"DISTANCE_MEASURED":\s*([\d.]+))");
 
-    // Pattern to find *each* object
-    std::regex object_pattern(
-        R"(\{"TAG_ID":\s*(\d+),\s*"ANCHOR_ID":\s*(\d+),\s*"DISTANCE_MEASURED":\s*([\d.]+)\})");
-
-    // Iterators to search the string
-    auto begin = std::sregex_iterator(dataLine.begin(), dataLine.end(), object_pattern);
+    auto begin = std::sregex_iterator(dataLine.begin(), dataLine.end(), combined_pattern);
     auto end = std::sregex_iterator();
 
-    RCLCPP_INFO_STREAM(
-        this->get_logger(),
-        "--- Extracted Data Points ---");
+    int mra_value = -1;
+
     for (std::sregex_iterator i = begin; i != end; ++i)
     {
         std::smatch match = *i;
-        float distance;
-        std::string tag_id, anchor_id;
 
-        tag_id = match[1].str();
-        anchor_id = match[2].str();
-        try
-        {
-            distance = std::stof(match[3].str());
-        }
-        catch (...)
-        {
-            std::cout << "error while parsing" << std::endl;
-            return;
+        // Check if Group 1 (MRA) matched
+        if (match[1].matched) {
+            mra_value = std::stoi(match[1].str());
+            RCLCPP_INFO(this->get_logger(), "Found MRA: %d", mra_value);
+            msg.mra = mra_value - 2; //FIXME fix stupid code in the dwm3001cdk drivers lol
+            continue; 
         }
 
-        RCLCPP_INFO_STREAM(
-            this->get_logger(),
-            "TAG_ID:" << tag_id
-                      << ", ANCHOR_ID: " << anchor_id
-                      << ", DISTANCE: " << distance
-            );
-
-        data.push_back(distance);
+        // Otherwise, check if Group 2 (The distance object) matched
+        if (match[2].matched) {
+            try {
+                float dist = std::stof(match[4].str());
+                msg.distances.push_back(dist);
+                
+                RCLCPP_INFO(this->get_logger(), "Parsed Point - Tag: %s, Anchor: %s, Dist: %f", 
+                             match[2].str().c_str(), match[3].str().c_str(), dist);
+            } catch (...) {
+                RCLCPP_ERROR(this->get_logger(), "Value conversion error");
+            }
+        }
     }
 
-    RCLCPP_INFO_STREAM(
-        this->get_logger(),
-        "-----------------------------");
+    if (mra_value == -1) {
+        RCLCPP_WARN(this->get_logger(), "No MRA found in string!");
+    }
 
-    msg.distances = data;    
     this->publisher_->publish(msg);
 }
-
 SerialParser::~SerialParser()
 {
     this->ctx.stop();
