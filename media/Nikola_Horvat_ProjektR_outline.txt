@@ -1,0 +1,39 @@
+Struktura prezentacije
+
+
+1. 	Problematika
+	Cilj je je razviti indoor lokalizacijski sustav koji može pratiti gibanje jednogili više objekata unutar nekog prostora.	
+		
+		
+2. 	Što je UWB
+2.1	UWB modul
+		Koristim dwm3001cdk. Zašto, zato jer je cijeli dev board pa ne trebam ručno pisati sve drivere i lemiti svoj mikrokontroler. Također postoji ZephyrRTOS driveri za tu pločicu koje sam modificirao da rade to što želim.
+		
+2.2 	Kako UWB mjeri udaljenost
+		Postoje dvije uloge, obje su ostvarene na istim pločicama. Initiator je tag te on inicijalizira ranging i prosljedjuje finalno mjerenje ROS2 driveru. 
+		Responder je anchor, on sluša za inicijalizatorovu prvu poruku te "odgovara" na nju.ž
+		*SLIKA*
+
+		
+3. 	Mašinerija iza lokalizacije
+		Prva ideja je bila koristiti 3 anchora te tražiti sjecište triju sfera. Zašto to nije dobro? Iako su UWB moduli dosta precizni oni ipak imaju na sebi neku inherentnu gresku koja proizlazi iz samog hardvera. Te se vrlo često događa da mi ne možemo odrediti točno jednu točku u kojoj siječu sve 3 kružnice.
+		Druga ideja je EKF, Extended Kalman Filter.
+		Ekf je estimacijski algoritam koji na temelju vjerojatnosti određuje najvjerojatniju poziciju tag-a.
+		*JEDNADŽBE EKF-a"	
+		
+3.1	Konfiguracija
+		*DIJAGRAM RAZMJEŠTAJA ANCHORA*
+		*DIJAGRAM KOMUNIKACIJE IZMEDJU TAGA I LAPTOPA*
+		*SLIKA KAKO IZGLEDA TAG*
+		
+3.2 	EKF jednadžbe
+		*SLIKA EKF JEDNADŽBA"
+	
+4.	Rezultati mjerenja
+		*VIDEO MJERENJA*
+
+5. 	Plan za dalje
+		Poboljšati testbench, napraviti više testova, poboljšati kod
+		Možda dodati IMU
+
+6. 	Hvala na pažnji

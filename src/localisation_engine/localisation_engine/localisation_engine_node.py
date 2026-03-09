@@ -2,7 +2,7 @@
 
 from custom_msgs.msg import Distances
 import localisation_engine.trilaterator as tril
-import localisation_engine.EKF as EKF
+import localisation_engine.EKF_raw as EKF_raw
 
 import rclpy
 from rclpy.node import Node
@@ -64,7 +64,7 @@ class LocalisationEngines(Node):
 
         self.declare_parameter("EKF_MODE","ASYNC")
 
-        self.ekf_c_ = EKF.EKF_c(mode = self.get_parameter("EKF_MODE").get_parameter_value().string_value, 
+        self.ekf_c_ = EKF_raw.EKF_raw(mode = self.get_parameter("EKF_MODE").get_parameter_value().string_value, 
                                 anchors=self.achor_coords_, 
                                 q_std=0.1, r_std=0.1)
 
@@ -72,7 +72,7 @@ class LocalisationEngines(Node):
 
     def distances_callback(self, msg : Distances):
         
-        point = self.ekf_c_.get_new_state_w(msg=msg)[0:3]
+        point = self.ekf_c_.get_new_state(msg=msg)[0:3]
 
         #self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"new position : {point}")

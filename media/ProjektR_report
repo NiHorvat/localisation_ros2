@@ -1,0 +1,138 @@
+Timeline razvoja i rada na projektu
+
+1. Uvod 
+	Tokom ljeta saznao sam za UWB tehnologiju i bio sam fasciniran koliko UWB može precizno mjeriti udaljenosti pa sam htio izgraditi svoj localization sustav koji bi koristio UWB module.
+	
+	
+2. Odabir UWB modula
+	Odabrao sam dwm3001cdk zbog toga jer na sebi ima moderni qorvo dwm3001c UWB modul te također jer je uz modul dolazi cijela pločica te ona ima dobar driver support. 
+
+3. Driveri za dwm3001cdk
+	Na Githubu sam našao sample koda koji koristi ZephyrRTOS za programiranje pločice. Tražio sam Zephyr support jer sam s njim već radio pa mi je prirodno bilo koristiti tehnologije s kojima sam upoznat. Sample kod sam modificirao svojim potrebama.
+	sample origin : https://github.com/svhoy/uwb_zephyr_dwm3001cdk
+	my modified version : https://github.com/NiHorvat/dwm3001cdk-drivers
+	Prof. dr. sc.
+	
+	
+4. Razvoj ros2 drivera 
+	ROS2 driver sam podijelio u nekoliko komada
+		Parser
+			cpp Node koji je odgovoran za čitanje serial outputa koje dwm3001cdk šalje
+			
+		Localisation engine
+			glavni dio programa koji koristi prikupljene podatke da bi lokalizirao objekt u prostoru
+	
+			
+		Networking nodes
+			koriste se za komunikaciju preko MQTT protokola
+			
+			
+5. Konfiguracija experimenta
+	-navedeno u prezentaciji
+	
+6. Test 0.1
+	U ovom testu sam testirao kako se sustav ponaša, za lokalizacijsku logiku sam koristio jednostavnu trilaterizaciju
+	Cilj ovoga je bio utvrditi da sustav radi, makar i ne previše točno
+	
+7. EKF jednadžbe
+	U ovom djelu bio je cilj razvti jednadže za lokalizaciju objekta u prostoru koristeći EKF filter
+	\documentclass[11pt, a4paper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{english}
+\babelfont{rm}{Noto Sans}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\begin{document}
+
+\title{EKF za 3D pozicioniranje: Batch vs. Sekvencijalni Update}
+\author{Transkripcija i analiza modela}
+\date{\today}
+\maketitle
+
+\section{Model stanja i predikcija}
+
+Vektor stanja $x$ definiran je kao:
+\begin{equation}
+    x = \begin{bmatrix} x_k \\ y_k \\ z_k \\ v_{xk} \\ v_{yk} \\ v_{zk} \end{bmatrix}
+\end{equation}
+
+Matrica prijelaza stanja $F$ (model konstantne brzine):
+\begin{equation}
+    F = \begin{bmatrix} 
+    1 & 0 & 0 & \Delta t & 0 & 0 \\ 
+    0 & 1 & 0 & 0 & \Delta t & 0 \\ 
+    0 & 0 & 1 & 0 & 0 & \Delta t \\ 
+    0 & 0 & 0 & 1 & 0 & 0 \\ 
+    0 & 0 & 0 & 0 & 1 & 0 \\ 
+    0 & 0 & 0 & 0 & 0 & 1 
+    \end{bmatrix}
+\end{equation}
+
+\section{Model mjerenja i Jakobijan}
+
+\subsection{Opcija 1: Batch Update (Sva mjerenja istovremeno)}
+Ako u trenutku $k$ dobijemo mjerenja sa svih $n$ anchora odjednom, vektor mjerenja je $z = [d_1, d_2, \dots, d_n]^T$, a Jakobijan $H$ je matrica dimenzija $n \times 6$:
+\begin{equation}
+    H_{batch} = \begin{bmatrix} 
+    \frac{\partial h_1}{\partial x_k} & \frac{\partial h_1}{\partial y_k} & \frac{\partial h_1}{\partial z_k} & 0 & 0 & 0 \\
+    \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+    \frac{\partial h_n}{\partial x_k} & \frac{\partial h_n}{\partial y_k} & \frac{\partial h_n}{\partial z_k} & 0 & 0 & 0 
+    \end{bmatrix}
+\end{equation}
+
+\subsection{Opcija 2: Sekvencijalni Update (Mjerenje po mjerenje)}
+Ako mjerenja dolaze asinkrono, za svako pojedinačno mjerenje $d_i$ iz anchora $i$, Jakobijan postaje vektor redak $1 \times 6$:
+\begin{equation}
+    H_i = \begin{bmatrix} 
+    \frac{x_k - x_i}{d_i} & \frac{y_k - y_i}{d_i} & \frac{z_k - z_i}{d_i} & 0 & 0 & 0
+    \end{bmatrix}
+\end{equation}
+
+U ovom slučaju, update korak se ponavlja za svako mjerenje unutar istog vremenskog koraka, koristeći rezultat prethodnog update-a kao ulaz za idući, dok se predikcija ($F$) vrši samo jednom na početku ciklusa.
+
+\section{EKF Jednadžbe Update-a}
+Za odabrani Jakobijan $H$ (bilo $H_{batch}$ ili $H_i$), koraci su:
+\begin{align}
+    e_k &= z_k - h(\hat{x}_k^-) \\
+    S_k &= H P_k^- H^T + R \\
+    K_k &= P_k^- H^T S_k^{-1} \\
+    \hat{x}_k &= \hat{x}_k^- + K_k e_k \\
+    P_k &= (I - K_k H) P_k^-
+\end{align}
+
+\end{document}
+	
+	
+8. EKF jednadžbe
+	Modifikacija koda i jednadžba da koriste asinkroni EKF filter, svako mjerenje zasebno dolazi u filter
+	
+	
+9. Test 0.2
+	Testiranje koristeći EKF filter
+	Za razliku od Test 0.1 sustav je bio mnogo stabilniji te je input lag bio znatno manji
+	Sustav je i dalje imao puno problema posebno kada se tag micao kroz prostor
+
+
+Plan za dalje
+	U daljnjem razvoju ovog projekta potrebno je fine tunati parametre EKF filtera, poboljšati kvalitetu koda, poboljšati način testiranja - dodati neki ground truth comparision, napraviti nekakvu kalibraciju anchora-njihove pozicije.
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+	
