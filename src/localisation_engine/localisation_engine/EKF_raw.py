@@ -2,7 +2,7 @@ import numpy as np
 from custom_msgs.msg import Distances
 from builtin_interfaces.msg import Time
 
-from EKF_proto import EKF_proto_c
+from localisation_engine.EKF_proto import EKF_proto_c
 
 class EKF_raw(EKF_proto_c):
     """
@@ -37,7 +37,7 @@ class EKF_raw(EKF_proto_c):
 
         
     def get_new_state(self, distances):
-        self.get_new_state_imp_(distances)
+        return self.get_new_state_imp_(distances)
 
     def get_new_state_sync_(self, msg : Distances):
         

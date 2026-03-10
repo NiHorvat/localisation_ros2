@@ -56,7 +56,7 @@ class LocalisationEngines(Node):
 
         self.achor_coords_ = np.reshape(
             a=self.get_parameter("anchor_positions_param").get_parameter_value().double_array_value,
-            newshape=(3,-1)
+            newshape=(4,-1) #FIXME PRIORITY FR FR
         )
         self.get_logger().info(
             f"Anchor Coordinates:\n {self.achor_coords_}"
@@ -72,7 +72,7 @@ class LocalisationEngines(Node):
 
     def distances_callback(self, msg : Distances):
         
-        point = self.ekf_c_.get_new_state(msg=msg)[0:3]
+        point = self.ekf_c_.get_new_state(distances=msg)[0:3]
 
         #self.get_logger().info(f"received distances{msg.distances}")
         self.get_logger().info(f"new position : {point}")
