@@ -18,6 +18,10 @@
   ros__parameters:
     mqtt_host: "localhost"
 
-
+/marker_generator_node:
+  ros__parameters:
+    marker_green: 0.0
+    marker_red: 0.0
+    marker_blue: 1.0
 
     

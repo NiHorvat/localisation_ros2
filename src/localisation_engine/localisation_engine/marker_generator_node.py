@@ -12,6 +12,12 @@ class MarkerGenerator(Node):
         self.declare_parameter("tag_coord_topic", "/tag/coords")
         self.declare_parameter("tag_marker_topic", "/tag/marker")
 
+        self.declare_parameter("marker_green", 0.0)
+        self.declare_parameter("marker_red", 1.0)
+        self.declare_parameter("marker_blue", 0.0)
+
+
+
         self.tag_marker = self.setup_marker()
 
         self.tag_marker_publisher = self.create_publisher(
@@ -27,6 +33,8 @@ class MarkerGenerator(Node):
             10
         )
 
+
+
     def tag_coords_subscribtion_cb(self, msg):
         self.tag_marker.header = msg.header
         self.tag_marker.pose.position = msg.point
@@ -40,9 +48,9 @@ class MarkerGenerator(Node):
         marker.scale.y = 0.2
         marker.scale.z = 0.2
         marker.color.a = 1.0
-        marker.color.r = 1.0
-        marker.color.g = 0.0
-        marker.color.b = 0.0
+        marker.color.r = self.get_parameter("marker_red").get_parameter_value().double_value
+        marker.color.g = self.get_parameter("marker_green").get_parameter_value().double_value
+        marker.color.b = self.get_parameter("marker_blue").get_parameter_value().double_value
         marker.pose.orientation.w = 1.0
         return marker
 
