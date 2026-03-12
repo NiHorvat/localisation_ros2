@@ -1,12 +1,22 @@
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import ExecuteProcess
 
 
 config_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../config/config.yml'))
+bag_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../bags/test_3'))
+
+
 def generate_launch_description():
     
     print(config_file_path)
+    
+    bag_play = ExecuteProcess(
+        cmd=['ros2', 'bag', 'play', bag_file_path, '--loop'],
+        output='screen'
+    )
+    
     
     #### NO VELOCITY
     
@@ -74,6 +84,7 @@ def generate_launch_description():
 
 
     return LaunchDescription([
+        bag_play,
         localisation_engine_1,
         marker_generator_1,
         localisation_engine_2,

@@ -9,6 +9,7 @@
     anchor_positions_param: [0.0, 0.0, 1.225, 0.0, 8.089, 1.225, -5.681, 7.818, 1.225, -5.789, 0.0, 1.225]
     robot_process_noise_stdev: 0.2
     measurement_noise_stdev: 0.2
+    EKF_TYPE: EKF_w_callibration
 
 /mqtt_publihser_node:
   ros__parameters:
