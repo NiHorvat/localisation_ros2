@@ -2,3 +2,9 @@
 build/
 install/
 log/
+
+
+launch/__pycache__/
+
+
+launch/testing/__pycache__/
