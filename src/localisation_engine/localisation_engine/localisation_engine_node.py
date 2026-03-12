@@ -77,6 +77,8 @@ class LocalisationEngines(Node):
         TEMP_ekf_type = self.get_parameter("EKF_TYPE").get_parameter_value().string_value
         TEMP_robot_q_stdev = self.get_parameter("robot_process_noise_stdev").get_parameter_value().double_value
         TEMP_r_stdev = self.get_parameter("measurement_noise_stdev").get_parameter_value().double_value
+        
+        
         if(TEMP_ekf_type == "EKF_raw_no_vel"):
             self.ekf_c_ = EKF_raw.EKF_raw_no_vel(mode = self.get_parameter("EKF_RANGING_MODE").get_parameter_value().string_value, 
                                     anchors=self.achor_coords_, 
