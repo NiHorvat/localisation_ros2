@@ -43,6 +43,10 @@ class LocalisationEngines(Node):
         self.declare_parameter("measurement_noise_stdev",0.1)
         self.declare_parameter("anchor_process_noise_stdev",0.0)
 
+        # Aprox starting position for robot
+        self.declare_parameter("robot_starting_position",[-1.2657031942335006,8.599692217784327,1.8497074728470744])
+
+
         # selectors for EKF type #TODO fix magic strings
         self.declare_parameter("EKF_TYPE", "EKF_raw_no_vel")
         self.declare_parameter("EKF_RANGING_MODE","ASYNC")
@@ -89,13 +93,6 @@ class LocalisationEngines(Node):
             f"Anchor Coordinates:\n {self.anchor_coords_}"
         )
         
-
-        
-        
-
-
-
-
 
         # Temp variables used as abreviations
         TEMP_ekf_type = self.get_parameter("EKF_TYPE").get_parameter_value().string_value

@@ -12,7 +12,7 @@ from localisation_engine.EKF_proto import EKF_proto_c
 class EKF_w_callibration(EKF_proto_c):
     
     
-    def __init__(self, mode : str, anchors : np.ndarray,  q_robot_stdev = 0.1, q_anchor_stdev = 0.1,r_std=0.1):
+    def __init__(self, mode : str, anchors : np.ndarray, robot_starting_position = [0,0,0], q_robot_stdev = 0.1, q_anchor_stdev = 0.1,r_std=0.1):
 
         ############################################## Atributes ##############################################
         
@@ -42,18 +42,22 @@ class EKF_w_callibration(EKF_proto_c):
             self.get_new_state_imp_ = self.get_new_state_async_
 
 
-        
+        # Different noise values for robot noise and anchor noise
         self.Q_[0,0] = self.Q_[1,1] = self.Q_[2,2] = q_robot_stdev ** 2
-        
         for i in range(6, self.Q_.shape[0]):
             self.Q_[i, i] = q_anchor_stdev ** 2
             
-                
+        # Anchor coordinates
         for i in range(self.n_):
             self.x_[6 + 3*i + 0, 0] = anchors[i, 0]
             self.x_[6 + 3*i + 1, 0] = anchors[i, 1]
             self.x_[6 + 3*i + 2, 0] = anchors[i, 2]
             
+        # Robot starting position estimation
+
+        self.x_[0] = robot_starting_position[0]
+        self.x_[1] = robot_starting_position[1]
+        self.x_[2] = robot_starting_position[2]
     
     @DeprecationWarning
     def get_new_state_sync_(self, msg : Distances):
@@ -163,6 +167,8 @@ class EKF_w_callibration(EKF_proto_c):
         
         self.x_ = self.x_ + np.dot(K, e)
         self.P_ = np.dot((np.eye(6 + 3 * self.n_) - np.dot(K, H)), self.P_)
+        
+        print(f'innovation: {e}, dist: {hx}, z: {z}')
         
         
     def get_new_state(self, distances):

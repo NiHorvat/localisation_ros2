@@ -52,32 +52,36 @@ class MarkerGenerator(Node):
             10
         )
         
-
+        self.get_logger().info("Marker Generator initialised")
 
 
     def tag_coords_subscribtion_cb(self, msg):
         self.tag_marker_.header = msg.header
         self.tag_marker_.pose.position = msg.point
         self.tag_marker_publisher_.publish(self.tag_marker_)
-
+            
     def anchor_coords_subscriontion_cb(self, msg: PointStampedArray):
         marker_array = MarkerArray()
 
-        # Delete all previous markers
         delete_marker = Marker()
         delete_marker.action = Marker.DELETEALL
         marker_array.markers.append(delete_marker)
 
         for i, point_stamped in enumerate(msg.points):
+            x = point_stamped.point.x
+            y = point_stamped.point.y
+            z = point_stamped.point.z
+
+            # Sphere marker
             marker = Marker()
             marker.header = msg.header
             marker.ns = "anchors"
             marker.id = i
             marker.type = Marker.SPHERE
             marker.action = Marker.ADD
-            marker.pose.position.x = point_stamped.point.x
-            marker.pose.position.y = point_stamped.point.y
-            marker.pose.position.z = point_stamped.point.z
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = z
             marker.pose.orientation.w = 1.0
             marker.scale.x = 0.2
             marker.scale.y = 0.2
@@ -88,7 +92,26 @@ class MarkerGenerator(Node):
             marker.color.b = 0.0
             marker_array.markers.append(marker)
 
-        self.anchor_marker_publisher_.publish(marker_array)        
+            # Text label marker
+            text_marker = Marker()
+            text_marker.header = msg.header
+            text_marker.ns = "anchor_labels"
+            text_marker.id = i
+            text_marker.type = Marker.TEXT_VIEW_FACING
+            text_marker.action = Marker.ADD
+            text_marker.pose.position.x = x
+            text_marker.pose.position.y = y
+            text_marker.pose.position.z = z + 0.3  # slightly above the sphere
+            text_marker.pose.orientation.w = 1.0
+            text_marker.scale.z = 0.15  # text height
+            text_marker.color.a = 1.0
+            text_marker.color.r = 1.0
+            text_marker.color.g = 1.0
+            text_marker.color.b = 1.0
+            text_marker.text = f"A{i} ({x:.2f}, {y:.2f}, {z:.2f})"
+            marker_array.markers.append(text_marker)
+
+        self.anchor_marker_publisher_.publish(marker_array)
 
 
     def setup_tag_marker(self) -> Marker:

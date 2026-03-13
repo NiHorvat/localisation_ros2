@@ -8,7 +8,7 @@ class EKF_proto_c:
     
     
     @abstractmethod
-    def __init__(self, mode : str, anchors : np.ndarray,  q_std = 0.1, r_std=0.1):
+    def __init__(self, mode : str, anchors : np.ndarray, robot_start_position, q_std = 0.1, r_std=0.1):
         pass
     
     @abstractmethod
