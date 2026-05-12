@@ -26,7 +26,7 @@ def generate_launch_description():
         executable='localisation_engine_node',  
         name='localisation_engine_node',
         parameters=[config_file_path,
-                    {"EKF_TYPE" : "EKF_w_callibration"}],
+                    {"EKF_TYPE" : "EKF_raw_w_vel"}],
         output='screen',
         prefix="xterm -e"
 
