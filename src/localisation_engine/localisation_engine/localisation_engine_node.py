@@ -14,6 +14,7 @@ from rclpy.parameter import Parameter
 from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.executors import ExternalShutdownException
 from geometry_msgs.msg import PointStamped
+from rclpy.logging import LoggingSeverity
 
 
 
@@ -26,6 +27,8 @@ import numpy as np
 class LocalisationEngines(Node):
     def __init__(self):
         super().__init__("localisation_engine_node")
+        self.get_logger().set_level(LoggingSeverity.INFO)
+
 
         # functionc pointer - or what the python version of that name is called
         # depending on the implementation - Calibration/No calibration the impllementation of this function will be different
@@ -116,7 +119,9 @@ class LocalisationEngines(Node):
         elif(TEMP_ekf_type == "EKF_w_callibration"):
             self.ekf_c_ = EKF_w_calibration.EKF_w_callibration(mode = self.get_parameter("EKF_RANGING_MODE").get_parameter_value().string_value, 
                         anchors=self.anchor_coords_, q_robot_stdev=TEMP_robot_q_stdev,
-                        q_anchor_stdev=TEMP_anchor_q_stdev, r_std=TEMP_r_stdev)
+                        q_anchor_stdev=TEMP_anchor_q_stdev, r_std=TEMP_r_stdev, 
+                        robot_starting_position=self.get_parameter("robot_starting_position").get_parameter_value().double_array_value
+                        )
             
             self.get_anchor_coords_ = self.get_anchor_coords_EKF_w_callibration
         else: 
@@ -125,7 +130,7 @@ class LocalisationEngines(Node):
 
 
     def get_anchor_coords_EKF_no_callibration(self, x : np.ndarray):
-        return self.anchor_coords_
+        return self.anchor_coords_ 
 
 
     def get_anchor_coords_EKF_w_callibration(self,x : np.ndarray):
@@ -143,7 +148,7 @@ class LocalisationEngines(Node):
         new_state = self.ekf_c_.get_new_state(distances=msg)
 
         #self.get_logger().info(f"received distances{msg.distances}")
-        self.get_logger().info(f"new state : {new_state}")     
+        #self.get_logger().debug(f"new state : {new_state}")     
 
 
         self.publish_tag_point(new_state[0:3])
@@ -171,7 +176,7 @@ class LocalisationEngines(Node):
 
         self.tag_coord_publisher_.publish(new_point)
 
-        self.get_logger().info(f"Published new point {new_point}")
+        #self.get_logger().debug(f"Published new point {new_point}")
 
     def publish_anchor_points(self, anchor_coords_NP: np.ndarray):
         if anchor_coords_NP is None:

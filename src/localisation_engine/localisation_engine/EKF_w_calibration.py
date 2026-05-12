@@ -44,9 +44,12 @@ class EKF_w_callibration(EKF_proto_c):
 
         # Different noise values for robot noise and anchor noise
         self.Q_[0,0] = self.Q_[1,1] = self.Q_[2,2] = q_robot_stdev ** 2
+        self.Q_[3,3] = self.Q_[4,4] = self.Q_[5,5] = q_robot_stdev ** 2
+
         for i in range(6, self.Q_.shape[0]):
             self.Q_[i, i] = q_anchor_stdev ** 2
             
+        print(self.Q_)
         # Anchor coordinates
         for i in range(self.n_):
             self.x_[6 + 3*i + 0, 0] = anchors[i, 0]
@@ -168,7 +171,7 @@ class EKF_w_callibration(EKF_proto_c):
         self.x_ = self.x_ + np.dot(K, e)
         self.P_ = np.dot((np.eye(6 + 3 * self.n_) - np.dot(K, H)), self.P_)
         
-        print(f'innovation: {e}, dist: {hx}, z: {z}')
+        #print(f'innovation: {e}, dist: {hx}, z: {z}')
         
         
     def get_new_state(self, distances):
