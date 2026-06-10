@@ -6,6 +6,7 @@ Graphs the Euclidean distance between:
 
 Live plot of distance vs. time. On exit (Ctrl-C or window close), prints
 mean / median / stddev / max and optionally saves the data to CSV.
+While running, prints cumulative stddev every 10 seconds.
 
 Usage:
     python3 graph_marker_distance.py
@@ -43,6 +44,9 @@ class DistanceNode(Node):
         self.lock = threading.Lock()
         self.t0 = time.monotonic()
 
+        # Rolling window for average-error reporting (independent of plot buffer)
+        self.window = deque(maxlen=5000)
+
         self.create_subscription(PoseStamped, pose_topic, self._pose_cb, 50)
         self.create_subscription(Marker, marker_topic, self._marker_cb, 50)
 
@@ -70,10 +74,15 @@ class DistanceNode(Node):
         t = time.monotonic() - self.t0
         with self.lock:
             self.samples.append((t, d))
+            self.window.append(d)
 
     def snapshot(self):
         with self.lock:
             return list(self.samples)
+
+    def window_snapshot(self):
+        with self.lock:
+            return list(self.window)
 
 
 def run_ros_thread(executor, node):
@@ -144,6 +153,8 @@ def main():
     ax.grid(True, alpha=0.3)
 
     start = time.monotonic()
+    last_stats = start
+    last_window_report = start
     try:
         while plt.fignum_exists(fig.number):
             data = node.snapshot()
@@ -162,7 +173,27 @@ def main():
             fig.canvas.flush_events()
             plt.pause(args.interval)
 
-            if args.duration is not None and (time.monotonic() - start) >= args.duration:
+            now = time.monotonic()
+            if now - last_stats >= 10.0:
+                last_stats = now
+                cur = node.snapshot()
+                if cur:
+                    dists = [d for _, d in cur]
+                    n = len(dists)
+                    mean = sum(dists) / n
+                    stddev = math.sqrt(sum((d - mean) ** 2 for d in dists) / n)
+                    print(f"[{now - start:6.1f}s] stddev = {stddev:.4f} m  (n={n})")
+
+            # Rolling 5000-sample average error (reported once the window is full)
+            if now - last_window_report >= 1.0:
+                last_window_report = now
+                win = node.window_snapshot()
+                if len(win) >= 5000:
+                    avg = sum(win) / len(win)
+                    print(f"[{now - start:6.1f}s] rolling avg error "
+                          f"(last {len(win)}) = {avg:.4f} m")
+
+            if args.duration is not None and (now - start) >= args.duration:
                 break
     except KeyboardInterrupt:
         pass

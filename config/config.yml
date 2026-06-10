@@ -8,12 +8,12 @@
     robot_process_noise_stdev: 0.5
     measurement_noise_stdev: 0.2
     anchor_process_noise_stdev: 0.002
-    EKF_TYPE: EKF_raw_no_vel
+    EKF_TYPE: EKF_raw_w_vel
 
-    robot_starting_position: [0.002724368590861559,-1.1468676328659058,-0.027470692992210388]
+
+    robot_starting_position: [0.0, 0.0, 0.0]
     # anchor_2, anchor_3, anchor_4, anchor_5
-    anchor_positions_param: [-0.45814505219459534, 0.09825899451971054, -0.003024705220013857, 1.0011353492736816, -1.0826369524002075, -0.009676698595285416, 2.346161127090454, 0.6738318204879761, -0.06713727116584778, 2.966172456741333, -1.1928915977478027, -0.07595102488994598]
-
+    anchor_positions_param: [0.0, 0.0, 1.225, 0.0, 8.089, 1.225, -5.681, 7.818, 1.225, -5.789, 0.0, 1.225]
 
 /MQTT_client_publisher:
   ros__parameters:
